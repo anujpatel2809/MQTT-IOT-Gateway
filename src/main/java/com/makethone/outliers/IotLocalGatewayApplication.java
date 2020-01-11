@@ -29,7 +29,7 @@ public class IotLocalGatewayApplication {
         IMqttClient mqttLocalClient = (IMqttClient) context.getBean("mqttLocalClient");
         IMqttClient mqttTBClient = (IMqttClient) context.getBean("mqttTBClient");
         RestTemplate restTemplate = context.getBean(RestTemplate.class);
-
+        context.getEnvironment().getProperty("hr-ms.url");
         ObjectMapper objectMapper = new ObjectMapper();
 
         mqttLocalClient.subscribe("v1/devices/me/telemetry", (topic, msg) -> {
@@ -54,6 +54,7 @@ public class IotLocalGatewayApplication {
 
                 try {
                     ResponseEntity<DeviceData> responseEntity = restTemplate.exchange(context.getEnvironment().getProperty("hr-ms.url") + sensorData.getDeviceId(), HttpMethod.GET, httpEntity, DeviceData.class);
+                    System.out.println(responseEntity);
                     DeviceData deviceData = new DeviceData(sensorData.getDeviceId(), responseEntity.getBody().getAccessToken(), true);
                     deviceCache.put(sensorData.getDeviceId(), deviceData);
 
@@ -64,6 +65,8 @@ public class IotLocalGatewayApplication {
                     mqttTBClient.publish("v1/devices/me/telemetry", mqttMessage);
 
                 } catch (HttpStatusCodeException e) {
+                    System.out.println(e.getMessage());
+                    System.out.println(e);
                     DeviceData deviceData = new DeviceData(sensorData.getDeviceId(), null, false);
                     deviceCache.put(sensorData.getDeviceId(), deviceData);
                 }
