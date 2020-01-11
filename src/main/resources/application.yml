@@ -1,0 +1,10 @@
+mqtt:
+  local:
+    clientId: ${COMPUTERNAME}-MQTT
+    hostname: localhost
+    port: 1882
+  tb:
+    clientId: ${COMPUTERNAME}-MQTT
+    hostname: demo.thingsboard.io
+    port: 1882
+    auth-token: 98GVhJAyD5DorEV4c7pd
