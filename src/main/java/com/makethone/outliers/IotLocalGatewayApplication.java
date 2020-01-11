@@ -38,7 +38,9 @@ public class IotLocalGatewayApplication {
             SensorData sensorData = objectMapper.readValue(msg.getPayload(), SensorData.class);
 
             if (deviceCache.containsKey(sensorData.getDeviceId())) {
+                System.out.println("DeviceId present in Cache");
                 if (deviceCache.get(sensorData.getDeviceId()).getAuthorized() == true) {
+                    System.out.println("Authorized device");
                     MqttMessage mqttMessage = new MqttMessage();
                     mqttMessage.setPayload(msg.getPayload());
                     mqttMessage.setQos(2);
@@ -46,6 +48,7 @@ public class IotLocalGatewayApplication {
                     mqttTBClient.publish("v1/devices/me/telemetry", mqttMessage);
                 }
             } else {
+                System.out.println("New Device");
                 deviceCache.put(sensorData.getDeviceId(), new DeviceData(sensorData.getDeviceId(), null, false));
 
                 HttpHeaders httpHeaders = new HttpHeaders();
