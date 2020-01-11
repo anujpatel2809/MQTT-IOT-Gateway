@@ -9,4 +9,4 @@ mqtt:
     port: 1883
     auth-token: 98GVhJAyD5DorEV4c7pd
 hr-ms:
-  url:
+  url: /registration/device/

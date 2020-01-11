@@ -56,7 +56,7 @@ public class IotLocalGatewayApplication {
 				HttpEntity httpEntity=new HttpEntity(httpHeaders);
 
 				try {
-					ResponseEntity<DeviceData> responseEntity = restTemplate.exchange(context.getEnvironment().getProperty("hr-ms.url"), HttpMethod.GET, httpEntity, DeviceData.class);
+					ResponseEntity<DeviceData> responseEntity = restTemplate.exchange(context.getEnvironment().getProperty("hr-ms.url")+sensorData.getDeviceId(), HttpMethod.GET, httpEntity, DeviceData.class);
 					DeviceData deviceData=new DeviceData(sensorData.getDeviceId(),responseEntity.getBody().getAccessToken(),true);
 					deviceCache.put(sensorData.getDeviceId(),deviceData);
 
