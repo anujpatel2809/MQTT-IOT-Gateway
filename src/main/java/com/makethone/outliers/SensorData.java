@@ -16,5 +16,6 @@ public class SensorData {
 
     private String deviceId;
     private String temperature;
+    private String humidity;
 
 }

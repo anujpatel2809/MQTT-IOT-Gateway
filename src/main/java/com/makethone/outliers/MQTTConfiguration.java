@@ -34,25 +34,25 @@ public class MQTTConfiguration {
         return mqttConnectOptions;
     }
 
-    @Bean
-    public IMqttClient mqttTBClient(@Value("${mqtt.tb.clientId}") String clientId,
-                                    @Value("${mqtt.tb.hostname}") String hostname, @Value("${mqtt.tb.port}") int port) throws MqttException {
-
-        IMqttClient mqttClient = new MqttClient("tcp://" + hostname + ":" + port, clientId);
-
-        mqttClient.connect(mqttTBConnectOptions());
-
-        return mqttClient;
-    }
-
-    @Bean
-    public MqttConnectOptions mqttTBConnectOptions() {
-        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-        mqttConnectOptions.setUserName(token);
-        mqttConnectOptions.setAutomaticReconnect(true);
-        mqttConnectOptions.setCleanSession(true);
-        mqttConnectOptions.setConnectionTimeout(10);
-        return mqttConnectOptions;
-    }
+//    @Bean
+//    public IMqttClient mqttTBClient(@Value("${mqtt.tb.clientId}") String clientId,
+//                                    @Value("${mqtt.tb.hostname}") String hostname, @Value("${mqtt.tb.port}") int port) throws MqttException {
+//
+//        IMqttClient mqttClient = new MqttClient("tcp://" + hostname + ":" + port, clientId);
+//
+//        mqttClient.connect(mqttTBConnectOptions());
+//
+//        return mqttClient;
+//    }
+//
+//    @Bean
+//    public MqttConnectOptions mqttTBConnectOptions() {
+//        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+//        mqttConnectOptions.setUserName("9OJTE290I1");
+//        mqttConnectOptions.setAutomaticReconnect(true);
+//        mqttConnectOptions.setCleanSession(true);
+//        mqttConnectOptions.setConnectionTimeout(10);
+//        return mqttConnectOptions;
+//    }
 
 }
