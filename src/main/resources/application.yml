@@ -8,3 +8,5 @@ mqtt:
     hostname: demo.thingsboard.io
     port: 1883
     auth-token: 98GVhJAyD5DorEV4c7pd
+hr-ms:
+  url:
