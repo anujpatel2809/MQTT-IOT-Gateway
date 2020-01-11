@@ -49,12 +49,12 @@ public class MQTTConfiguration {
     @Bean
     public MqttConnectOptions mqttTBConnectOptions() {
         MqttConnectOptions mqttConnectOptions=new MqttConnectOptions();
-        mqttConnectOptions.setUserName("use-token-auth");
-        mqttConnectOptions.setPassword(token.toCharArray());
+        //mqttConnectOptions.setUserName("use-token-auth");
+        mqttConnectOptions.setUserName(token);
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(true);
         mqttConnectOptions.setConnectionTimeout(10);
-        return new MqttConnectOptions();
+        return mqttConnectOptions;
     }
 
 }

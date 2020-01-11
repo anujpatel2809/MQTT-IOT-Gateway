@@ -1,10 +1,10 @@
 mqtt:
   local:
-    clientId: ${COMPUTERNAME}-MQTT
+    clientId: pi-MQTT
     hostname: localhost
-    port: 1882
+    port: 1883
   tb:
-    clientId: ${COMPUTERNAME}-MQTT
+    clientId: tb-MQTT
     hostname: demo.thingsboard.io
-    port: 1882
+    port: 1883
     auth-token: 98GVhJAyD5DorEV4c7pd
