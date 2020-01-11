@@ -1,5 +1,6 @@
 package com.makethone.outliers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -23,19 +24,19 @@ public class IotLocalGatewayApplication {
 
     static Map<String, DeviceData> deviceCache = new HashMap<>();
 
-    public static void main(String[] args) throws MqttException {
+    public static void main(String[] args) throws MqttException, JsonProcessingException {
         ConfigurableApplicationContext context = SpringApplication.run(IotLocalGatewayApplication.class, args);
 
         IMqttClient mqttLocalClient = (IMqttClient) context.getBean("mqttLocalClient");
         IMqttClient mqttTBClient = (IMqttClient) context.getBean("mqttTBClient");
         RestTemplate restTemplate = context.getBean(RestTemplate.class);
-        context.getEnvironment().getProperty("hr-ms.url");
+
         ObjectMapper objectMapper = new ObjectMapper();
 
         mqttLocalClient.subscribe("v1/devices/me/telemetry", (topic, msg) -> {
             System.out.println("Received -> " + new String(msg.getPayload()));
 
-            SensorData sensorData = objectMapper.readValue(msg.getPayload(), SensorData.class);
+            SensorData sensorData = objectMapper.readValue(new String(msg.getPayload()), SensorData.class);
 
             if (deviceCache.containsKey(sensorData.getDeviceId())) {
                 System.out.println("DeviceId present in Cache");

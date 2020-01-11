@@ -1,7 +1,7 @@
 mqtt:
   local:
     clientId: pi-MQTT
-    hostname: localhost
+    hostname: 192.168.1.14
     port: 1883
   tb:
     clientId: tb-MQTT
