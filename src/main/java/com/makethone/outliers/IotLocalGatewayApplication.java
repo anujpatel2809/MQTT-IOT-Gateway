@@ -20,21 +20,25 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @SpringBootApplication
 public class IotLocalGatewayApplication {
 
     static Map<String, DeviceData> deviceCache = new HashMap<>();
 
+    static ObjectMapper objectMapper = new ObjectMapper();
+
     public static void main(String[] args) throws MqttException, JsonProcessingException {
         ConfigurableApplicationContext context = SpringApplication.run(IotLocalGatewayApplication.class, args);
 
+        processMessage(context);
+
+    }
+
+    private static void processMessage(ConfigurableApplicationContext context) throws MqttException {
         IMqttClient mqttLocalClient = (IMqttClient) context.getBean("mqttLocalClient");
 //        IMqttClient mqttTBClient = (IMqttClient) context.getBean("mqttTBClient");
         RestTemplate restTemplate = context.getBean(RestTemplate.class);
-
-        ObjectMapper objectMapper = new ObjectMapper();
 
         mqttLocalClient.subscribe("v1/devices/me/telemetry", (topic, msg) -> {
             System.out.println("Received -> " + new String(msg.getPayload()));
@@ -46,54 +50,25 @@ public class IotLocalGatewayApplication {
                 if (deviceCache.get(sensorData.getDeviceId()).getAuthorized() == true) {
                     System.out.println("Authorized device");
 
-                    IMqttClient mqttClient = new MqttClient("tcp://" + context.getEnvironment().getProperty("mqtt.tb.hostname") + ":" + 1883, "tb-mqtt");
-                    MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-                    mqttConnectOptions.setUserName(deviceCache.get(sensorData.getDeviceId()).getAccessToken());
-                    mqttConnectOptions.setAutomaticReconnect(true);
-                    mqttConnectOptions.setCleanSession(true);
-                    mqttConnectOptions.setConnectionTimeout(10);
-                    mqttClient.connect(mqttConnectOptions);
-
-                    MqttMessage mqttMessage = new MqttMessage();
-                    mqttMessage.setPayload(msg.getPayload());
-                    mqttMessage.setQos(2);
-                    mqttMessage.setRetained(true);
-                    mqttClient.publish("v1/devices/me/telemetry", mqttMessage);
-
-                    mqttClient.disconnect();
+                    publish(context, msg, sensorData);
 
                 }
             } else {
-                System.out.println("New Device");
+
                 deviceCache.put(sensorData.getDeviceId(), new DeviceData(sensorData.getDeviceId(), null, false));
 
                 HttpHeaders httpHeaders = new HttpHeaders();
-                httpHeaders.set("source", "GATEWAY");
+                httpHeaders.set("source", "gateway");
                 HttpEntity httpEntity = new HttpEntity(httpHeaders);
 
                 try {
-                    System.out.println(context.getEnvironment().getProperty("hr-ms.url") + sensorData.getDeviceId());
+
                     ResponseEntity<DeviceData> responseEntity = restTemplate.exchange(context.getEnvironment().getProperty("hr-ms.url") + sensorData.getDeviceId(), HttpMethod.GET, httpEntity, DeviceData.class);
-                    System.out.println(responseEntity);
+
                     DeviceData deviceData = new DeviceData(sensorData.getDeviceId(), responseEntity.getBody().getAccessToken(), true);
-                    System.out.println(deviceData);
                     deviceCache.put(sensorData.getDeviceId(), deviceData);
 
-                    MqttClient mqttClient = new MqttClient("tcp://" + context.getEnvironment().getProperty("mqtt.tb.hostname") + ":" + 1883, "tb-mqtt");
-                    MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-                    mqttConnectOptions.setUserName(deviceCache.get(sensorData.getDeviceId()).getAccessToken());
-                    mqttConnectOptions.setAutomaticReconnect(true);
-                    mqttConnectOptions.setCleanSession(true);
-//                    mqttConnectOptions.setConnectionTimeout(1);
-                    mqttClient.connect(mqttConnectOptions);
-
-                    MqttMessage mqttMessage = new MqttMessage();
-                    mqttMessage.setPayload(objectMapper.writeValueAsString(sensorData).getBytes());
-                    mqttMessage.setQos(2);
-                    mqttMessage.setRetained(true);
-                    mqttClient.publish("v1/devices/me/telemetry", mqttMessage);
-
-                    mqttClient.disconnect();
+                    publish(context, null, sensorData);
 
                 } catch (HttpStatusCodeException e) {
                     System.out.println(e.getMessage());
@@ -103,7 +78,46 @@ public class IotLocalGatewayApplication {
                 }
             }
         });
+    }
 
+//    private static void publish1(ConfigurableApplicationContext context, SensorData sensorData) throws MqttException, JsonProcessingException {
+//        MqttClient mqttClient = new MqttClient("tcp://" + context.getEnvironment().getProperty("mqtt.tb.hostname") + ":" + 1883, "tb-mqtt");
+//        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+//        mqttConnectOptions.setUserName(deviceCache.get(sensorData.getDeviceId()).getAccessToken());
+//        mqttConnectOptions.setAutomaticReconnect(true);
+//        mqttConnectOptions.setCleanSession(true);
+////                    mqttConnectOptions.setConnectionTimeout(1);
+//        mqttClient.connect(mqttConnectOptions);
+//
+//        MqttMessage mqttMessage = new MqttMessage();
+//
+//        mqttMessage.setQos(2);
+//        mqttMessage.setRetained(true);
+//        mqttClient.publish("v1/devices/me/telemetry", mqttMessage);
+//
+//        mqttClient.disconnect();
+//    }
+
+    private static void publish(ConfigurableApplicationContext context, MqttMessage msg, SensorData sensorData) throws MqttException, JsonProcessingException {
+        IMqttClient mqttClient = new MqttClient("tcp://" + context.getEnvironment().getProperty("mqtt.tb.hostname") + ":" + 1883, "tb-mqtt");
+        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+        mqttConnectOptions.setUserName(deviceCache.get(sensorData.getDeviceId()).getAccessToken());
+        mqttConnectOptions.setAutomaticReconnect(true);
+        mqttConnectOptions.setCleanSession(true);
+        mqttConnectOptions.setConnectionTimeout(10);
+        mqttClient.connect(mqttConnectOptions);
+
+        MqttMessage mqttMessage = new MqttMessage();
+        if (msg != null) {
+            mqttMessage.setPayload(msg.getPayload());
+        } else {
+            mqttMessage.setPayload(objectMapper.writeValueAsString(sensorData).getBytes());
+        }
+        mqttMessage.setQos(2);
+        mqttMessage.setRetained(true);
+        mqttClient.publish("v1/devices/me/telemetry", mqttMessage);
+
+        mqttClient.disconnect();
     }
 
     @Bean
